@@ -1,0 +1,35 @@
+{
+  "navbar": {
+    "title": "พร้อมจด",
+    "language": "ภาษา",
+    "login": "เข้าสู่ระบบด้วย Google",
+    "logout": "ออกจากระบบ"
+  },
+  "chat": {
+    "inputPlaceholder": "พิมพ์ข้อความของคุณที่นี่...",
+    "send": "ส่ง",
+    "reminderDetected": "พบการแจ้งเตือนในข้อความของคุณ ต้องการตั้งค่าไหม?",
+    "noMessages": "ยังไม่มีข้อความ เริ่มสนทนาเลย!"
+  },
+  "reminderModal": {
+    "title": "ตั้งการแจ้งเตือน",
+    "description": "รายละเอียด",
+    "date": "วันที่",
+    "time": "เวลา",
+    "offset": "แจ้งเตือนล่วงหน้า",
+    "offsetOptions": {
+      "5min": "5 นาที",
+      "15min": "15 นาที",
+      "30min": "30 นาที",
+      "1hour": "1 ชั่วโมง",
+      "1day": "1 วัน"
+    },
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "addToCalendar": "เพิ่มในปฏิทิน Google"
+  },
+  "notifications": {
+    "reminder": "การแจ้งเตือน: {{title}}",
+    "calendar": "เพิ่มในปฏิทิน Google แล้ว"
+  }
+} 

@@ -1,0 +1,35 @@
+{
+  "navbar": {
+    "title": "Prompt Jod",
+    "language": "Language",
+    "login": "Login with Google",
+    "logout": "Logout"
+  },
+  "chat": {
+    "inputPlaceholder": "Type your message here...",
+    "send": "Send",
+    "reminderDetected": "I detected a reminder in your message. Would you like to set it up?",
+    "noMessages": "No messages yet. Start a conversation!"
+  },
+  "reminderModal": {
+    "title": "Set Reminder",
+    "description": "Description",
+    "date": "Date",
+    "time": "Time",
+    "offset": "Remind me",
+    "offsetOptions": {
+      "5min": "5 minutes before",
+      "15min": "15 minutes before",
+      "30min": "30 minutes before",
+      "1hour": "1 hour before",
+      "1day": "1 day before"
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "addToCalendar": "Add to Google Calendar"
+  },
+  "notifications": {
+    "reminder": "Reminder: {{title}}",
+    "calendar": "Added to Google Calendar"
+  }
+} 
