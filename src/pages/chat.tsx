@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import ReminderModal, { ReminderData } from '../components/ReminderModal';
-import { Box, TextField, IconButton, Paper, Typography, useTheme } from '@mui/material';
+import { Box, TextField, IconButton, Paper, Typography, useTheme, CircularProgress } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
+import { chatWithGemini } from '../services/gemini';
+import { parse } from 'date-fns';
 
 interface Message {
   id: string;
@@ -12,42 +14,101 @@ interface Message {
   timestamp: Date;
 }
 
+interface ReminderResponse {
+  text: string;
+  isReminder: boolean;
+  reminderData?: {
+    title: string;
+    description: string;
+    dateTime: string;
+    day: string;
+  };
+}
+
 const ChatPage = () => {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const theme = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [reminderData, setReminderData] = useState<ReminderData | null>(null);
 
-  const handleSend = () => {
+  const parseReminderData = (data: ReminderResponse['reminderData']): ReminderData | null => {
+    if (!data) return null;
+    
+    let date = new Date();
+    const [hours, minutes] = data.dateTime.split(':').map(Number);
+    
+    // Adjust date based on day
+    if (data.day === 'พรุ่งนี้' || data.day === 'tomorrow') {
+      date.setDate(date.getDate() + 1);
+    } else if (data.day === 'มะรืนนี้' || data.day === 'day after tomorrow') {
+      date.setDate(date.getDate() + 2);
+    }
+    
+    date.setHours(hours, minutes, 0, 0);
+    
+    return {
+      title: data.title,
+      description: data.description,
+      dateTime: date,
+      offset: '30min',
+    };
+  };
+
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: input,
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, newMessage]);
-    setInput('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: t('chat.reminderDetected'),
-        isUser: false,
-        timestamp: new Date(),
+    try {
+      // Add user message
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        text: input,
+        isUser: true,
+        timestamp: new Date()
       };
-      setMessages((prev) => [...prev, aiResponse]);
-      setIsReminderModalOpen(true);
-    }, 1000);
+      setMessages(prev => [...prev, userMessage]);
+      setInput('');
+
+      // Get AI response
+      const response = await chatWithGemini(input, i18n.language);
+
+      // Add AI message
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: response.text,
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+
+      // If it's a reminder, open the modal with the data
+      if (response.isReminder && response.reminderData) {
+        const parsedReminderData = parseReminderData(response.reminderData);
+        if (parsedReminderData) {
+          setReminderData(parsedReminderData);
+          setIsReminderModalOpen(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        text: i18n.language === 'th' ? 'ขออภัยครับ เกิดข้อผิดพลาด กรุณาลองอีกครั้ง' : 'Sorry, an error occurred. Please try again.',
+        isUser: false,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleReminderSave = (reminder: ReminderData) => {
     // TODO: Implement reminder saving logic
     console.log('Reminder saved:', reminder);
+    setIsReminderModalOpen(false);
+    setReminderData(null);
   };
 
   return (
@@ -117,7 +178,10 @@ const ChatPage = () => {
           placeholder={t('chat.inputPlaceholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+          multiline
+          maxRows={4}
+          disabled={isLoading}
           sx={{
             '& .MuiOutlinedInput-root': {
               backgroundColor: 'transparent',
@@ -137,6 +201,7 @@ const ChatPage = () => {
         />
         <IconButton
           onClick={handleSend}
+          disabled={isLoading || !input.trim()}
           sx={{
             backgroundColor: 'rgba(78, 204, 163, 0.1)',
             color: '#4ECCA3',
@@ -146,16 +211,24 @@ const ChatPage = () => {
             '&:hover': {
               backgroundColor: 'rgba(78, 204, 163, 0.2)',
             },
+            '&.Mui-disabled': {
+              backgroundColor: 'rgba(78, 204, 163, 0.05)',
+              color: 'rgba(78, 204, 163, 0.3)',
+            },
           }}
         >
-          <SendIcon />
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
         </IconButton>
       </Box>
 
       <ReminderModal
         open={isReminderModalOpen}
-        onClose={() => setIsReminderModalOpen(false)}
+        onClose={() => {
+          setIsReminderModalOpen(false);
+          setReminderData(null);
+        }}
         onSave={handleReminderSave}
+        initialData={reminderData}
       />
     </Box>
   );

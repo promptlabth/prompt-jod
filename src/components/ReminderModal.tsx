@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
 import {
   Dialog,
@@ -20,6 +20,7 @@ interface ReminderModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (reminder: ReminderData) => void;
+  initialData?: ReminderData | null;
 }
 
 export interface ReminderData {
@@ -29,7 +30,7 @@ export interface ReminderData {
   offset: string;
 }
 
-const ReminderModal = ({ open, onClose, onSave }: ReminderModalProps) => {
+const ReminderModal = ({ open, onClose, onSave, initialData }: ReminderModalProps) => {
   const { t } = useTranslation('common');
   const theme = useTheme();
   const [reminder, setReminder] = useState<ReminderData>({
@@ -38,6 +39,12 @@ const ReminderModal = ({ open, onClose, onSave }: ReminderModalProps) => {
     dateTime: new Date(),
     offset: '30min',
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setReminder(initialData);
+    }
+  }, [initialData]);
 
   const handleSave = () => {
     onSave(reminder);

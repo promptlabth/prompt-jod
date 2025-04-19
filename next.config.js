@@ -7,6 +7,9 @@ const nextConfig = {
   images: {
     domains: ['lh3.googleusercontent.com'], // For Google profile images
   },
+  env: {
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  },
 };
 
 module.exports = nextConfig; 

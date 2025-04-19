@@ -1,5 +1,14 @@
 import { createTheme } from '@mui/material';
 
+const fontFamily = [
+  'Kanit',
+  '-apple-system',
+  'BlinkMacSystemFont',
+  '"Segoe UI"',
+  'Roboto',
+  'sans-serif'
+].join(',');
+
 export const lightTheme = createTheme({
   palette: {
     mode: 'light',
@@ -18,13 +27,19 @@ export const lightTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily,
     h6: {
-      fontWeight: 600,
+      fontWeight: 500,
     },
     button: {
       textTransform: 'none',
-      fontWeight: 500,
+      fontWeight: 400,
+    },
+    body1: {
+      fontWeight: 300,
+    },
+    body2: {
+      fontWeight: 300,
     },
   },
   components: {
@@ -79,13 +94,19 @@ export const darkTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily,
     h6: {
-      fontWeight: 600,
+      fontWeight: 500,
     },
     button: {
       textTransform: 'none',
-      fontWeight: 500,
+      fontWeight: 400,
+    },
+    body1: {
+      fontWeight: 300,
+    },
+    body2: {
+      fontWeight: 300,
     },
   },
   components: {
