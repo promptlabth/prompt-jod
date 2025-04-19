@@ -9,7 +9,8 @@ import {
   Menu, 
   MenuItem, 
   IconButton,
-  useTheme as useMuiTheme
+  useTheme as useMuiTheme,
+  Avatar
 } from '@mui/material';
 import { 
   LightMode as LightModeIcon,
@@ -18,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface NavButtonProps {
   children: React.ReactNode;
@@ -46,8 +48,10 @@ const Navbar = () => {
   const router = useRouter();
   const { locale } = router;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
   const { isDarkMode, toggleTheme } = useTheme();
   const muiTheme = useMuiTheme();
+  const { user, signInWithGoogle, signOut } = useAuth();
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -55,6 +59,19 @@ const Navbar = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileAnchorEl(null);
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    handleProfileMenuClose();
   };
 
   const changeLanguage = (newLocale: string) => {
@@ -162,20 +179,56 @@ const Navbar = () => {
             ))}
           </Menu>
 
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#4ECCA3',
-              color: '#FFFFFF',
-              '&:hover': {
-                backgroundColor: '#45b892',
-              },
-              borderRadius: '20px',
-              px: 3,
-            }}
-          >
-            {t('navbar.login')}
-          </Button>
+          {user ? (
+            <>
+              <IconButton
+                onClick={handleProfileMenuOpen}
+                sx={{ p: 0 }}
+              >
+                <Avatar 
+                  alt={user.email || 'User'} 
+                  src={user.user_metadata.avatar_url}
+                  sx={{ 
+                    width: 40, 
+                    height: 40,
+                    backgroundColor: 'rgba(78, 204, 163, 0.1)',
+                  }}
+                />
+              </IconButton>
+              <Menu
+                anchorEl={profileAnchorEl}
+                open={Boolean(profileAnchorEl)}
+                onClose={handleProfileMenuClose}
+                PaperProps={{
+                  elevation: 3,
+                  sx: {
+                    mt: 1,
+                    backgroundColor: muiTheme.palette.background.paper,
+                    borderRadius: 2,
+                    border: '1px solid rgba(78, 204, 163, 0.1)',
+                  }
+                }}
+              >
+                <MenuItem onClick={handleSignOut}>{t('navbar.logout')}</MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={signInWithGoogle}
+              sx={{
+                backgroundColor: '#4ECCA3',
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: '#45b892',
+                },
+                borderRadius: '20px',
+                px: 3,
+              }}
+            >
+              {t('navbar.login')}
+            </Button>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

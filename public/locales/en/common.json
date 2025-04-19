@@ -5,6 +5,10 @@
     "login": "Login with Google",
     "logout": "Logout"
   },
+  "loginModal": {
+    "title": "Login Required",
+    "description": "Please login to continue chatting with the bot."
+  },
   "chat": {
     "inputPlaceholder": "Type your message here...",
     "send": "Send",

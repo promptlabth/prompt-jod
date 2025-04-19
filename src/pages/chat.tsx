@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import ReminderModal, { ReminderData } from '../components/ReminderModal';
@@ -6,6 +6,8 @@ import { Box, TextField, IconButton, Paper, Typography, useTheme, CircularProgre
 import { Send as SendIcon } from '@mui/icons-material';
 import { chatWithGemini } from '../services/gemini';
 import { parse } from 'date-fns';
+import { useAuth } from '../contexts/AuthContext';
+import LoginModal from '../components/LoginModal';
 
 interface Message {
   id: string;
@@ -28,11 +30,13 @@ interface ReminderResponse {
 const ChatPage = () => {
   const { t, i18n } = useTranslation('common');
   const theme = useTheme();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [reminderData, setReminderData] = useState<ReminderData | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const parseReminderData = (data: ReminderResponse['reminderData']): ReminderData | null => {
     if (!data) return null;
@@ -59,6 +63,11 @@ const ChatPage = () => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
+
+    if (!user) {
+      setIsLoginModalOpen(true);
+      return;
+    }
 
     try {
       // Add user message
@@ -229,6 +238,10 @@ const ChatPage = () => {
         }}
         onSave={handleReminderSave}
         initialData={reminderData}
+      />
+      <LoginModal 
+        open={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
       />
     </Box>
   );
