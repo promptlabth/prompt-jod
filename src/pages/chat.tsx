@@ -5,26 +5,15 @@ import ReminderModal, { ReminderData } from '../components/ReminderModal';
 import { Box, TextField, IconButton, Paper, Typography, useTheme, CircularProgress } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
 import { chatWithGemini } from '../services/gemini';
-import { parse } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from '../components/LoginModal';
+import { saveMessage, getRecentMessages, ChatMessage } from '../services/chatHistory';
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
-}
-
-interface ReminderResponse {
-  text: string;
-  isReminder: boolean;
-  reminderData?: {
-    title: string;
-    description: string;
-    dateTime: string;
-    day: string;
-  };
 }
 
 const ChatPage = () => {
@@ -37,79 +26,107 @@ const ChatPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [reminderData, setReminderData] = useState<ReminderData | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
-  const parseReminderData = (data: ReminderResponse['reminderData']): ReminderData | null => {
-    if (!data) return null;
-    
-    let date = new Date();
-    const [hours, minutes] = data.dateTime.split(':').map(Number);
-    
-    // Adjust date based on day
-    if (data.day === 'พรุ่งนี้' || data.day === 'tomorrow') {
-      date.setDate(date.getDate() + 1);
-    } else if (data.day === 'มะรืนนี้' || data.day === 'day after tomorrow') {
-      date.setDate(date.getDate() + 2);
-    }
-    
-    date.setHours(hours, minutes, 0, 0);
-    
-    return {
-      title: data.title,
-      description: data.description,
-      dateTime: date,
-      offset: '30min',
+  // Load chat history when user is authenticated
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      if (user) {
+        try {
+          const history = await getRecentMessages(user);
+          setChatHistory(history);
+          
+          // Convert chat history to messages for display
+          const displayMessages = history.map(msg => ({
+            id: msg.id,
+            text: msg.content,
+            isUser: msg.role === 'user',
+            timestamp: new Date(msg.created_at)
+          }));
+          setMessages(displayMessages);
+        } catch (error) {
+          console.error('Error loading chat history:', error);
+        }
+      }
     };
-  };
+
+    loadChatHistory();
+  }, [user]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
-
-    if (!user) {
-      setIsLoginModalOpen(true);
+    if (!input.trim() || !user) {
+      if (!user) {
+        setIsLoginModalOpen(true);
+      }
       return;
     }
 
+    const userMessage = input.trim();
+    setInput('');
+    setIsLoading(true);
+
     try {
-      // Add user message
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        text: input,
+      // Save user message to history
+      const savedUserMessage = await saveMessage(user, 'user', userMessage);
+      
+      // Add user message to display
+      setMessages(prev => [...prev, {
+        id: savedUserMessage.id,
+        text: userMessage,
         isUser: true,
         timestamp: new Date()
-      };
-      setMessages(prev => [...prev, userMessage]);
-      setInput('');
+      }]);
 
-      // Get AI response
-      const response = await chatWithGemini(input, i18n.language);
-
-      // Add AI message
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+      // Get response from Gemini with chat history
+      const response = await chatWithGemini(userMessage, chatHistory, i18n.language);
+      
+      // Save assistant message to history
+      const savedAssistantMessage = await saveMessage(user, 'assistant', response.text);
+      
+      // Add assistant message to display
+      setMessages(prev => [...prev, {
+        id: savedAssistantMessage.id,
         text: response.text,
         isUser: false,
         timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiMessage]);
+      }]);
 
-      // If it's a reminder, open the modal with the data
+      // Update chat history
+      setChatHistory(prev => [...prev, savedUserMessage, savedAssistantMessage]);
+
+      // Handle reminder if detected
       if (response.isReminder && response.reminderData) {
-        const parsedReminderData = parseReminderData(response.reminderData);
-        if (parsedReminderData) {
-          setReminderData(parsedReminderData);
-          setIsReminderModalOpen(true);
+        let date = new Date();
+        const [hours, minutes] = response.reminderData.dateTime.split(':').map(Number);
+        
+        // Adjust date based on day
+        if (response.reminderData.day === 'พรุ่งนี้' || response.reminderData.day === 'tomorrow') {
+          date.setDate(date.getDate() + 1);
+        } else if (response.reminderData.day === 'มะรืนนี้' || response.reminderData.day === 'day after tomorrow') {
+          date.setDate(date.getDate() + 2);
         }
+        
+        date.setHours(hours, minutes, 0, 0);
+        
+        setReminderData({
+          title: response.reminderData.title,
+          description: response.reminderData.description,
+          dateTime: date,
+          offset: '30min'
+        });
+        setIsReminderModalOpen(true);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      // Add error message
-      const errorMessage: Message = {
-        id: (Date.now() + 2).toString(),
+      console.error('Error in chat:', error);
+      // Add error message to display
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
         text: i18n.language === 'th' ? 'ขออภัยครับ เกิดข้อผิดพลาด กรุณาลองอีกครั้ง' : 'Sorry, an error occurred. Please try again.',
         isUser: false,
         timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      }]);
+    } finally {
+      setIsLoading(false);
     }
   };
 

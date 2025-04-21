@@ -1,21 +1,17 @@
-import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ChatMessage, formatMessagesForGemini } from './chatHistory';
 
-const API_KEY = process.env.GEMINI_API_KEY;
-if (!API_KEY) {
-  throw new Error('GEMINI_API_KEY is not defined in environment variables');
+interface ReminderData {
+  title: string;
+  description: string;
+  dateTime: string;
+  day: string;
 }
-
-const genAI = new GoogleGenerativeAI(API_KEY);
 
 interface ChatResponse {
   text: string;
   isReminder: boolean;
-  reminderData?: {
-    title: string;
-    description: string;
-    dateTime: string;
-    day: string;
-  };
+  reminderData?: ReminderData;
 }
 
 // Language-specific prompts
@@ -91,9 +87,10 @@ const prompts = {
   2. All data will be sent in JSON format automatically, do not show JSON structure in the response message`
 };
 
-export async function chatWithGemini(message: string, language: string = 'en'): Promise<ChatResponse> {
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+export const chatWithGemini = async (prompt: string, history: ChatMessage[] = [], language: string = 'en'): Promise<ChatResponse> => {
   try {
-    // Initialize the model
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.0-flash",
       generationConfig: {
@@ -106,64 +103,69 @@ export async function chatWithGemini(message: string, language: string = 'en'): 
     
     // Get the appropriate prompt based on language
     const systemPrompt = language === 'th' ? prompts.th : prompts.en;
-    console.log('Selected language:', language);
-    console.log('Using prompt:', systemPrompt);
     
-    // Start the chat with language-specific instruction
+    // Format chat history for Gemini with correct role types
+    const formattedHistory = history.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }]
+    }));
+    
+    // Start a chat with history and system prompt
     const chat = model.startChat({
       history: [
         {
           role: "user",
-          parts: [{ text: language === 'th' ? 'คุณต้องตอบเป็นภาษาไทยเท่านั้น คุณเข้าใจไหม?' : 'You must respond in English only. Do you understand?' }] as Part[],
+          parts: [{ text: language === 'th' ? 'คุณต้องตอบเป็นภาษาไทยเท่านั้น คุณเข้าใจไหม?' : 'You must respond in English only. Do you understand?' }],
         },
         {
           role: "model",
-          parts: [{ text: language === 'th' ? 'เข้าใจแล้วครับ ผมจะตอบเป็นภาษาไทยเท่านั้น' : 'Yes, I understand. I will respond in English only.' }] as Part[],
+          parts: [{ text: language === 'th' ? 'เข้าใจแล้วครับ ผมจะตอบเป็นภาษาไทยเท่านั้น' : 'Yes, I understand. I will respond in English only.' }],
         },
         {
           role: "user",
-          parts: [{ text: systemPrompt }] as Part[],
+          parts: [{ text: systemPrompt }],
         },
         {
           role: "model",
-          parts: [{ text: language === 'th' ? 'เข้าใจแล้วครับ ผมจะประมวลผลข้อความและตรวจจับการเตือนความจำ ตอบเป็นภาษาไทยในรูปแบบ JSON ที่กำหนด' : 'I understand. I will process messages and detect reminders, responding in English in the specified JSON format.' }] as Part[],
+          parts: [{ text: language === 'th' ? 'เข้าใจแล้วครับ ผมจะประมวลผลข้อความและตรวจจับการเตือนความจำ ตอบเป็นภาษาไทยในรูปแบบ JSON ที่กำหนด' : 'I understand. I will process messages and detect reminders, responding in English in the specified JSON format.' }],
         },
+        ...formattedHistory
       ],
       generationConfig: {
         maxOutputTokens: 1000,
       },
     });
 
-    // Send the message and get response
-    const result = await chat.sendMessage(message);
+    // Send the new message
+    const result = await chat.sendMessage(prompt);
     const response = await result.response;
-    const responseText = response.text();
+    const text = response.text();
 
-    // Try to extract JSON from the response
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        const jsonResponse = JSON.parse(jsonMatch[0]);
+    // Try to parse the response
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
         return {
-          text: jsonResponse.text,
-          isReminder: jsonResponse.isReminder,
-          reminderData: jsonResponse.reminderData
+          text: parsed.text,
+          isReminder: parsed.isReminder || false,
+          reminderData: parsed.reminderData
         };
-      } catch (error) {
-        console.error('Error parsing JSON:', error);
       }
+    } catch (error) {
+      console.error('Error parsing response:', error);
     }
 
-    // If no JSON found or parsing failed, return as normal message
+    // If parsing fails, return the raw text
     return {
-      text: responseText,
+      text: text,
       isReminder: false
     };
   } catch (error) {
-    console.error('Error in Gemini chat:', error);
+    console.error('Error chatting with Gemini:', error);
     return {
-      text: language === 'th' ? 'ขออภัยครับ เกิดข้อผิดพลาด กรุณาลองอีกครั้ง' : "I apologize, but I encountered an error. Please try again.",
+      text: language === 'th' ? 'ขออภัยครับ เกิดข้อผิดพลาด กรุณาลองอีกครั้ง' : 'Sorry, an error occurred. Please try again.',
       isReminder: false
     };
   }
-} 
+}; 
