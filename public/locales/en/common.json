@@ -35,5 +35,94 @@
   "notifications": {
     "reminder": "Reminder: {{title}}",
     "calendar": "Added to Google Calendar"
+  },
+  "home": {
+    "title": "Your AI Assistant",
+    "description": "Chat with an AI that can help you with anything, set appointments, and manage reminders intelligently",
+    "getStarted": "Get Started"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last Updated: April 21, 2024",
+    "introduction": {
+      "title": "Introduction",
+      "content": "We value your privacy. This document explains how we collect, use, and protect your personal information. We are committed to maintaining the security and privacy of all user data."
+    },
+    "dataCollection": {
+      "title": "Data Collection",
+      "content": "We collect necessary information for our services, including:\n- User account information (name, email, profile picture)\n- Chat history and AI interactions\n- Appointment and reminder data\n- Usage data (login times, features used)\n- Device information (device type, OS, browser)"
+    },
+    "dataUsage": {
+      "title": "Data Usage",
+      "content": "We use your data to:\n- Provide and improve AI services\n- Enhance user experience\n- Provide support and troubleshooting\n- Personalize responses\n- Analyze and develop new features\n- Prevent illegal activities"
+    },
+    "dataProtection": {
+      "title": "Data Protection",
+      "content": "We implement strict security measures:\n- Data encryption during transmission and storage\n- Strict access controls\n- Regular security audits and updates\n- Regular data backups\n- Employee security training"
+    },
+    "dataSharing": {
+      "title": "Data Sharing",
+      "content": "We do not sell or rent your personal information. We may share data in the following cases:\n- With your consent\n- When required by law\n- To protect our rights or security\n- With verified third-party service providers"
+    },
+    "userRights": {
+      "title": "User Rights",
+      "content": "You have the right to:\n- Access and edit your personal data\n- Request data deletion\n- Request a copy of your data\n- Object to data processing\n- Cancel your subscription\n- File complaints about data usage"
+    },
+    "cookies": {
+      "title": "Cookie Usage",
+      "content": "We use cookies to:\n- Remember your preferences\n- Improve performance\n- Analyze usage\n- Provide personalized service\nYou can manage cookie settings in your browser"
+    },
+    "children": {
+      "title": "Children's Data",
+      "content": "We do not knowingly collect personal information from children under 13. If you discover we have collected data from a child without parental consent, please contact us to remove the information."
+    },
+    "changes": {
+      "title": "Policy Changes",
+      "content": "We may update this privacy policy periodically. We will notify you of significant changes via email or website announcements."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "content": "If you have questions about our privacy policy, please contact us:\nEmail: admin@promptlabai.com\nAddress: Bangkok, Thailand\nBusiness Hours: Mon-Fri 09:00-18:00"
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last Updated: April 21, 2024",
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "content": "By using our service, you agree to these terms and conditions. If you do not agree with any part of these terms, please do not use our service."
+    },
+    "useOfService": {
+      "title": "Use of Service",
+      "content": "You agree to:\n- Use the service in accordance with applicable laws\n- Not use the service for illegal purposes\n- Not interfere with service operations\n- Not attempt unauthorized access\n- Not transmit harmful content or viruses"
+    },
+    "userResponsibilities": {
+      "title": "User Responsibilities",
+      "content": "You are responsible for:\n- Maintaining account and password security\n- Reporting unauthorized access\n- Providing accurate information\n- All actions under your account\n- Complying with relevant laws"
+    },
+    "content": {
+      "title": "Content and Communication",
+      "content": "You acknowledge that:\n- AI-generated content may not be 100% accurate\n- You should verify information\n- We are not responsible for decisions made using our service\n- You should use judgment when following advice"
+    },
+    "limitations": {
+      "title": "Limitations of Liability",
+      "content": "We are not liable for:\n- Damages from service use\n- Data loss\n- Service interruptions\n- Indirect or consequential damages\n- Third-party actions"
+    },
+    "intellectualProperty": {
+      "title": "Intellectual Property",
+      "content": "All intellectual property rights in the service belong to us. You are granted a limited license to use the service and may not copy, modify, or distribute any content without permission."
+    },
+    "termination": {
+      "title": "Service Termination",
+      "content": "We reserve the right to:\n- Suspend or terminate service for violations\n- Modify or update the service\n- Restrict access to certain features\n- Cancel inactive accounts"
+    },
+    "disputes": {
+      "title": "Dispute Resolution",
+      "content": "Any disputes arising from service use will be resolved through negotiation first. If no agreement is reached, Thai law will govern the resolution."
+    },
+    "changes": {
+      "title": "Changes to Terms",
+      "content": "We may update these terms at any time. We will notify you of significant changes, and continued use after changes constitutes acceptance of the new terms."
+    }
   }
 } 

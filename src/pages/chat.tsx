@@ -8,6 +8,7 @@ import { chatWithGemini } from '../services/gemini';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from '../components/LoginModal';
 import { saveMessage, getRecentMessages, ChatMessage } from '../services/chatHistory';
+import { saveAppointment } from '../services/reminders';
 
 interface Message {
   id: string;
@@ -130,11 +131,46 @@ const ChatPage = () => {
     }
   };
 
-  const handleReminderSave = (reminder: ReminderData) => {
-    // TODO: Implement reminder saving logic
-    console.log('Reminder saved:', reminder);
-    setIsReminderModalOpen(false);
-    setReminderData(null);
+  const handleReminderSave = async (reminder: ReminderData) => {
+    if (!user) return;
+
+    try {
+      // Convert the date and time to the required format
+      const date = reminder.dateTime.toISOString().split('T')[0];
+      const time = reminder.dateTime.toTimeString().split(' ')[0].substring(0, 5);
+      
+      await saveAppointment(user, {
+        title: reminder.title,
+        description: reminder.description,
+        date,
+        time,
+        reminder_minutes_before: 10 // Default to 10 minutes before
+      });
+
+      // Show success message
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: i18n.language === 'th' 
+          ? 'บันทึกการนัดหมายเรียบร้อยแล้วครับ' 
+          : 'Appointment saved successfully',
+        isUser: false,
+        timestamp: new Date()
+      }]);
+    } catch (error) {
+      console.error('Error saving appointment:', error);
+      // Show error message
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: i18n.language === 'th' 
+          ? 'ขออภัยครับ ไม่สามารถบันทึกการนัดหมายได้ กรุณาลองอีกครั้ง' 
+          : 'Sorry, failed to save appointment. Please try again.',
+        isUser: false,
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsReminderModalOpen(false);
+      setReminderData(null);
+    }
   };
 
   return (
