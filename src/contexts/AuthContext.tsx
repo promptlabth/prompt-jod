@@ -36,7 +36,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: process.env.NODE_ENV === 'development' 
+            ? 'http://localhost:3000/auth/callback'
+            : `${window.location.origin}/auth/callback`
         }
       });
       if (error) throw error;
