@@ -34,7 +34,13 @@
   },
   "notifications": {
     "reminder": "Reminder: {{title}}",
-    "calendar": "Added to Google Calendar"
+    "calendar": "Added to Google Calendar",
+    "connectCalendar": {
+      "title": "Connect Google Calendar",
+      "description": "To use reminder features, please connect your Google Calendar",
+      "connect": "Connect Calendar",
+      "later": "Maybe Later"
+    }
   },
   "home": {
     "title": "Your AI Assistant",

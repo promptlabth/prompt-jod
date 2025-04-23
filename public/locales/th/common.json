@@ -34,7 +34,13 @@
   },
   "notifications": {
     "reminder": "การแจ้งเตือน: {{title}}",
-    "calendar": "เพิ่มในปฏิทิน Google แล้ว"
+    "calendar": "เพิ่มในปฏิทิน Google แล้ว",
+    "connectCalendar": {
+      "title": "เชื่อมต่อปฏิทิน Google",
+      "description": "เพื่อใช้ฟีเจอร์การแจ้งเตือน กรุณาเชื่อมต่อปฏิทิน Google ของคุณ",
+      "connect": "เชื่อมต่อปฏิทิน",
+      "later": "ไว้ก่อน"
+    }
   },
   "home": {
     "title": "AI ผู้ช่วยอัจฉริยะของคุณ",

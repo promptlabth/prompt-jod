@@ -113,7 +113,7 @@ const ChatPage = () => {
           title: response.reminderData.title,
           description: response.reminderData.description,
           dateTime: date,
-          offset: '30min'
+          offset: 30
         });
         setIsReminderModalOpen(true);
       }
@@ -135,16 +135,11 @@ const ChatPage = () => {
     if (!user) return;
 
     try {
-      // Convert the date and time to the required format
-      const date = reminder.dateTime.toISOString().split('T')[0];
-      const time = reminder.dateTime.toTimeString().split(' ')[0].substring(0, 5);
-      
-      await saveAppointment(user, {
+      await saveAppointment(user.id, {
         title: reminder.title,
         description: reminder.description,
-        date,
-        time,
-        reminder_minutes_before: 10 // Default to 10 minutes before
+        dateTime: reminder.dateTime,
+        offset: reminder.offset
       });
 
       // Show success message

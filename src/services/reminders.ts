@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { createCalendarEvent } from './googleCalendar';
 
 export interface Appointment {
   id: string;
@@ -14,39 +15,82 @@ export interface Appointment {
   updated_at: Date;
 }
 
-export const saveAppointment = async (user: User, appointmentData: {
+interface ReminderData {
   title: string;
-  description?: string;
-  date: string;
-  time: string;
-  reminder_minutes_before?: number;
-}): Promise<Appointment> => {
-  const { data, error } = await supabase
-    .from('appointments')
-    .insert([
-      {
-        user_id: user.id,
-        title: appointmentData.title,
-        description: appointmentData.description,
-        date: appointmentData.date,
-        time: appointmentData.time,
-        reminder_minutes_before: appointmentData.reminder_minutes_before || 10,
-      }
-    ])
-    .select()
-    .single();
+  description: string;
+  dateTime: Date;
+  offset: number;
+}
 
-  if (error) {
-    throw new Error(`Failed to save appointment: ${error.message}`);
+export async function saveAppointment(userId: string, data: ReminderData) {
+  try {
+    // Convert date and time to ISO string
+    const startDateTime = new Date(data.dateTime);
+    const endDateTime = new Date(startDateTime);
+    endDateTime.setMinutes(endDateTime.getMinutes() + 30); // Default 30-minute duration
+
+    // Create calendar event
+    const calendarEvent = await createCalendarEvent(userId, {
+      summary: data.title,
+      description: data.description,
+      start: {
+        dateTime: startDateTime.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      end: {
+        dateTime: endDateTime.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      reminders: {
+        useDefault: false,
+        overrides: [
+          {
+            method: 'popup',
+            minutes: data.offset,
+          },
+        ],
+      },
+    });
+
+    // Save to Supabase
+    const { data: reminder, error } = await supabase
+      .from('reminders')
+      .insert([
+        {
+          user_id: userId,
+          title: data.title,
+          description: data.description,
+          date: startDateTime.toISOString(),
+          calendar_event_id: calendarEvent.id,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return reminder;
+  } catch (error) {
+    console.error('Error saving appointment:', error);
+    throw error;
   }
+}
 
-  return {
-    ...data,
-    datetime: new Date(data.datetime),
-    created_at: new Date(data.created_at),
-    updated_at: new Date(data.updated_at),
-  };
-};
+export async function getUpcomingReminders(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('reminders')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('date', new Date().toISOString())
+      .order('date', { ascending: true });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching reminders:', error);
+    throw error;
+  }
+}
 
 export const getAppointments = async (user: User): Promise<Appointment[]> => {
   const { data, error } = await supabase

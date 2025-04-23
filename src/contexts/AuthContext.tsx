@@ -7,6 +7,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  isCalendarConnected: boolean;
+  setIsCalendarConnected: (connected: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCalendarConnected, setIsCalendarConnected] = useState(false);
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -36,9 +39,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: process.env.NODE_ENV === 'development' 
-            ? 'http://localhost:3000/auth/callback'
-            : `${window.location.origin}/auth/callback`
+          redirectTo: window.location.origin + '/auth/callback',
+          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.settings.readonly',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         }
       });
       if (error) throw error;
@@ -51,13 +57,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setIsCalendarConnected(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      signInWithGoogle, 
+      signOut,
+      isCalendarConnected,
+      setIsCalendarConnected
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ReactNode } from 'react';
 import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Avatar, Menu, MenuItem, Button, IconButton } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import GoogleIcon from '@mui/icons-material/Google';
+import CalendarConnectionModal from './CalendarConnectionModal';
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,8 +16,19 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const theme = useTheme();
   const { t } = useTranslation('common');
-  const { user, signInWithGoogle, signOut } = useAuth();
+  const { user, signInWithGoogle, signOut, isCalendarConnected, setIsCalendarConnected } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+
+  useEffect(() => {
+    if (user && !isCalendarConnected) {
+      // Show calendar connection modal after a short delay
+      const timer = setTimeout(() => {
+        setShowCalendarModal(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, isCalendarConnected]);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -29,6 +41,12 @@ const Layout = ({ children }: LayoutProps) => {
   const handleSignOut = () => {
     signOut();
     handleMenuClose();
+  };
+
+  const handleConnectCalendar = () => {
+    // Here you would implement the actual calendar connection logic
+    setIsCalendarConnected(true);
+    setShowCalendarModal(false);
   };
 
   return (
@@ -60,6 +78,12 @@ const Layout = ({ children }: LayoutProps) => {
       >
         {children}
       </Box>
+
+      <CalendarConnectionModal
+        open={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        onConnect={handleConnectCalendar}
+      />
     </Box>
   );
 };
