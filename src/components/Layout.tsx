@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import GoogleIcon from '@mui/icons-material/Google';
 import CalendarConnectionModal from './CalendarConnectionModal';
 import PWAInstallPrompt from './PWAInstallPrompt';
+import { checkCalendarConnection } from '../services/googleCalendar';
 
 interface LayoutProps {
   children: ReactNode;
@@ -23,11 +24,18 @@ const Layout = ({ children }: LayoutProps) => {
 
   useEffect(() => {
     if (user && !isCalendarConnected) {
-      // Show calendar connection modal after a short delay
-      const timer = setTimeout(() => {
-        setShowCalendarModal(true);
-      }, 1000);
-      return () => clearTimeout(timer);
+      // Check if user is already connected
+      checkCalendarConnection(user.id).then((isConnected: boolean) => {
+        if (isConnected) {
+          setIsCalendarConnected(true);
+        } else {
+          // Show calendar connection modal after a short delay
+          const timer = setTimeout(() => {
+            setShowCalendarModal(true);
+          }, 1000);
+          return () => clearTimeout(timer);
+        }
+      });
     }
   }, [user, isCalendarConnected]);
 
