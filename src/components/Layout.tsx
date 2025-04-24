@@ -8,6 +8,7 @@ import { Avatar, Menu, MenuItem, Button, IconButton } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import GoogleIcon from '@mui/icons-material/Google';
 import CalendarConnectionModal from './CalendarConnectionModal';
+import PWAInstallPrompt from './PWAInstallPrompt';
 
 interface LayoutProps {
   children: ReactNode;
@@ -16,7 +17,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const theme = useTheme();
   const { t } = useTranslation('common');
-  const { user, signInWithGoogle, signOut, isCalendarConnected, setIsCalendarConnected } = useAuth();
+  const { user, signInWithGoogle, signOut, isCalendarConnected, setIsCalendarConnected, showPWAPrompt, setShowPWAPrompt } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
 
@@ -83,6 +84,11 @@ const Layout = ({ children }: LayoutProps) => {
         open={showCalendarModal}
         onClose={() => setShowCalendarModal(false)}
         onConnect={handleConnectCalendar}
+      />
+
+      <PWAInstallPrompt
+        open={showPWAPrompt}
+        onClose={() => setShowPWAPrompt(false)}
       />
     </Box>
   );

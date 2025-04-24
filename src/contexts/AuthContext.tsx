@@ -9,6 +9,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isCalendarConnected: boolean;
   setIsCalendarConnected: (connected: boolean) => void;
+  showPWAPrompt: boolean;
+  setShowPWAPrompt: (show: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCalendarConnected, setIsCalendarConnected] = useState(false);
+  const [showPWAPrompt, setShowPWAPrompt] = useState(false);
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -36,24 +39,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      // Get the current URL's origin
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const redirectTo = `${origin}/auth/callback`;
-      
-      console.log('Redirecting to:', redirectTo); // Debug log
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo,
-          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.settings.readonly',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
+      
       if (error) throw error;
+      
+      // Show PWA prompt after successful login
+      // Wait a bit before showing the PWA prompt
+      setTimeout(() => {
+        setShowPWAPrompt(true);
+      }, 2000);
+      
     } catch (error) {
       console.error('Error signing in with Google:', error);
     }
@@ -76,7 +76,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithGoogle, 
       signOut,
       isCalendarConnected,
-      setIsCalendarConnected
+      setIsCalendarConnected,
+      showPWAPrompt,
+      setShowPWAPrompt
     }}>
       {children}
     </AuthContext.Provider>

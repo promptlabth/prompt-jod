@@ -142,5 +142,13 @@
     "title": "You are offline",
     "description": "Please check your internet connection and try again",
     "retry": "Retry"
+  },
+  "common": {
+    "later": "Maybe Later"
+  },
+  "pwaPrompt": {
+    "title": "Install พร้อมจด App",
+    "description": "Install our app for a better experience with quick access and offline capabilities.",
+    "install": "Install Now"
   }
 } 
