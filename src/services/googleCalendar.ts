@@ -67,8 +67,14 @@ export async function createCalendarEvent(userId: string, event: CalendarEvent) 
 export async function checkCalendarConnection(userId: string) {
   try {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
-    if (!session?.provider_token) return false;
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+      return false;
+    }
+    if (!session?.provider_token) {
+      console.error('No provider token available');
+      return false;
+    }
 
     // Test the connection by making a simple API call
     const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
@@ -76,6 +82,21 @@ export async function checkCalendarConnection(userId: string) {
         'Authorization': `Bearer ${session.provider_token}`,
       },
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Google Calendar API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
+      
+      // If the error is due to insufficient permissions, we need to re-authenticate
+      if (response.status === 403) {
+        console.error('Insufficient permissions. Please re-authenticate with Google Calendar.');
+        return false;
+      }
+    }
 
     return response.ok;
   } catch (error) {

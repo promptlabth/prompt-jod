@@ -10,7 +10,8 @@ const projectRoot = path.resolve(currentDir, '..');
 const inputFile = path.join(projectRoot, 'public', 'icons', 'logo.webp');
 const outputDir = path.join(projectRoot, 'public', 'icons');
 
-const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+// Add favicon sizes to the existing sizes
+const sizes = [16, 32, 72, 96, 128, 144, 152, 180, 192, 384, 512];
 
 async function generateIcons() {
   try {
