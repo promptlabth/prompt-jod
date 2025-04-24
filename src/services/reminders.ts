@@ -53,22 +53,23 @@ export async function saveAppointment(userId: string, data: ReminderData) {
     });
 
     // Save to Supabase
-    const { data: reminder, error } = await supabase
-      .from('reminders')
+    const { data: appointment, error } = await supabase
+      .from('appointments')
       .insert([
         {
           user_id: userId,
           title: data.title,
           description: data.description,
-          date: startDateTime.toISOString(),
-          calendar_event_id: calendarEvent.id,
+          date: startDateTime.toISOString().split('T')[0],
+          time: startDateTime.toTimeString().split(' ')[0].substring(0, 5),
+          reminder_minutes_before: data.offset
         },
       ])
       .select()
       .single();
 
     if (error) throw error;
-    return reminder;
+    return appointment;
   } catch (error) {
     console.error('Error saving appointment:', error);
     throw error;
@@ -78,16 +79,16 @@ export async function saveAppointment(userId: string, data: ReminderData) {
 export async function getUpcomingReminders(userId: string) {
   try {
     const { data, error } = await supabase
-      .from('reminders')
+      .from('appointments')
       .select('*')
       .eq('user_id', userId)
-      .gte('date', new Date().toISOString())
-      .order('date', { ascending: true });
+      .gte('datetime', new Date().toISOString())
+      .order('datetime', { ascending: true });
 
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching reminders:', error);
+    console.error('Error fetching appointments:', error);
     throw error;
   }
 }
