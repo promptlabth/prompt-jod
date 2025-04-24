@@ -20,7 +20,10 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Chip
+  Chip,
+  Snackbar,
+  Alert,
+  Fade
 } from '@mui/material';
 import { 
   AccessTime,
@@ -35,6 +38,7 @@ import { getUpcomingReminders, updateReminder, deleteReminder, Appointment } fro
 import { addToGoogleCalendar } from '../services/googleCalendar';
 import { format } from 'date-fns';
 import { th, enUS } from 'date-fns/locale';
+import { supabase } from '../lib/supabase';
 
 const AppointmentsPage = () => {
   const { t, i18n } = useTranslation('common');
@@ -45,6 +49,11 @@ const AppointmentsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isConnectCalendarDialogOpen, setIsConnectCalendarDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isAddingToCalendar, setIsAddingToCalendar] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [recentlyAddedToCalendar, setRecentlyAddedToCalendar] = useState<string | null>(null);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
@@ -91,19 +100,51 @@ const AppointmentsPage = () => {
   };
 
   const handleAddToCalendar = async (appointment: Appointment) => {
+    setIsAddingToCalendar(appointment.id);
     try {
       const appointmentForCalendar = {
         ...appointment,
-        datetime: appointment.datetime.toISOString(),
-        created_at: appointment.created_at.toISOString(),
-        updated_at: appointment.updated_at.toISOString()
+        datetime: new Date(appointment.datetime).toISOString(),
+        created_at: new Date(appointment.created_at).toISOString(),
+        updated_at: new Date(appointment.updated_at).toISOString()
       };
       await addToGoogleCalendar(appointmentForCalendar);
       setAppointments(appointments.map(apt => 
         apt.id === appointment.id ? { ...apt, isAddedToCalendar: true } : apt
       ));
+      setSuccessMessage(t('notifications.calendar.success'));
+      setRecentlyAddedToCalendar(appointment.id);
+      setTimeout(() => {
+        setRecentlyAddedToCalendar(null);
+      }, 5000);
     } catch (error) {
       console.error('Error adding to calendar:', error);
+      if (error instanceof Error && error.message.includes('Please connect your Google Calendar')) {
+        setIsConnectCalendarDialogOpen(true);
+      } else {
+        setErrorMessage(t('notifications.calendar.error'));
+      }
+    } finally {
+      setIsAddingToCalendar(null);
+    }
+  };
+
+  const handleConnectCalendar = async () => {
+    try {
+      // Redirect to Google OAuth flow
+      const { data: { url }, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          scopes: 'https://www.googleapis.com/auth/calendar',
+          redirectTo: `${window.location.origin}/appointments`
+        }
+      });
+      
+      if (error) throw error;
+      if (url) window.location.href = url;
+    } catch (error) {
+      console.error('Error connecting calendar:', error);
+      setErrorMessage(t('notifications.connectCalendar.error'));
     }
   };
 
@@ -198,11 +239,13 @@ const AppointmentsPage = () => {
                 border: '1px solid rgba(78, 204, 163, 0.1)',
                 borderRadius: '20px',
                 transition: 'all 0.2s ease-in-out',
+                position: 'relative',
+                overflow: 'hidden',
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                  borderColor: 'primary.main',
-                },
+                  borderColor: 'primary.main'
+                }
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
@@ -278,34 +321,58 @@ const AppointmentsPage = () => {
                   {!appointment.isAddedToCalendar && (
                     <IconButton
                       onClick={() => handleAddToCalendar(appointment)}
+                      disabled={isAddingToCalendar === appointment.id}
                       sx={{ 
                         color: theme.palette.primary.main,
-                        '&:hover': { backgroundColor: 'rgba(78, 204, 163, 0.1)' }
+                        '&:hover': { backgroundColor: 'rgba(78, 204, 163, 0.1)' },
+                        position: 'relative'
                       }}
                     >
-                      <Add />
+                      {isAddingToCalendar === appointment.id ? (
+                        <CircularProgress
+                          size={24}
+                          sx={{
+                            color: theme.palette.primary.main,
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            marginTop: '-12px',
+                            marginLeft: '-12px'
+                          }}
+                        />
+                      ) : (
+                        <Add />
+                      )}
                     </IconButton>
                   )}
                 </Box>
               </Box>
               {appointment.isAddedToCalendar && (
-                <Chip
-                  icon={<CheckCircle />}
-                  label={t('appointments.addedToCalendar')}
-                  color="success"
-                  size="small"
-                  sx={{ 
-                    position: 'absolute', 
-                    top: 8, 
-                    right: 8,
-                    backgroundColor: 'rgba(78, 204, 163, 0.1)',
-                    borderColor: theme.palette.success.main,
-                    color: theme.palette.success.main,
-                    '& .MuiChip-icon': {
-                      color: theme.palette.success.main
-                    }
-                  }}
-                />
+                <Fade in={true} timeout={500}>
+                  <Chip
+                    icon={<CheckCircle />}
+                    label={t('appointments.addedToCalendar')}
+                    color="success"
+                    size="small"
+                    sx={{ 
+                      position: 'absolute', 
+                      top: 8, 
+                      right: 8,
+                      backgroundColor: recentlyAddedToCalendar === appointment.id 
+                        ? 'rgba(78, 204, 163, 0.2)' 
+                        : 'rgba(78, 204, 163, 0.1)',
+                      borderColor: theme.palette.success.main,
+                      color: theme.palette.success.main,
+                      transition: 'all 0.3s ease-in-out',
+                      transform: recentlyAddedToCalendar === appointment.id 
+                        ? 'scale(1.05)' 
+                        : 'scale(1)',
+                      '& .MuiChip-icon': {
+                        color: theme.palette.success.main
+                      }
+                    }}
+                  />
+                </Fade>
               )}
             </Paper>
           ))}
@@ -363,6 +430,57 @@ const AppointmentsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Connect Calendar Dialog */}
+      <Dialog
+        open={isConnectCalendarDialogOpen}
+        onClose={() => setIsConnectCalendarDialogOpen(false)}
+      >
+        <DialogTitle>{t('notifications.connectCalendar.title')}</DialogTitle>
+        <DialogContent>
+          <Typography>
+            {t('notifications.connectCalendar.description')}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsConnectCalendarDialogOpen(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={handleConnectCalendar} variant="contained">
+            {t('notifications.connectCalendar.connect')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Status Snackbar */}
+      <Snackbar
+        open={!!successMessage || !!errorMessage}
+        autoHideDuration={successMessage ? 3000 : 5000}
+        onClose={() => {
+          setSuccessMessage(null);
+          setErrorMessage(null);
+        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => {
+            setSuccessMessage(null);
+            setErrorMessage(null);
+          }}
+          severity={successMessage ? 'success' : 'error'}
+          sx={{ 
+            width: '100%',
+            '& .MuiAlert-message': {
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }
+          }}
+        >
+          {successMessage && <CheckCircle fontSize="small" />}
+          {successMessage || errorMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

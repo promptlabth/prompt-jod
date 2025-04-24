@@ -156,11 +156,13 @@ export const addToGoogleCalendar = async (appointment: Appointment) => {
 
 // Helper function to get the access token
 const getAccessToken = async () => {
-  // Implement your token retrieval logic here
-  // This could be from your auth context, localStorage, or a token refresh endpoint
-  const token = localStorage.getItem('google_access_token');
-  if (!token) {
-    throw new Error('No Google access token found');
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) {
+    console.error('Session error:', sessionError);
+    throw new Error('Failed to get session');
   }
-  return token;
+  if (!session?.provider_token) {
+    throw new Error('No Google access token found. Please connect your Google Calendar.');
+  }
+  return session.provider_token;
 }; 
