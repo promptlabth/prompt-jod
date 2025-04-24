@@ -130,5 +130,17 @@
       "title": "Changes to Terms",
       "content": "We may update these terms at any time. We will notify you of significant changes, and continued use after changes constitutes acceptance of the new terms."
     }
+  },
+  "appointments": {
+    "title": "Appointments",
+    "noAppointments": "No upcoming appointments",
+    "reminderDays": "Remind {{days}} days before",
+    "reminderHours": "Remind {{hours}} hours before",
+    "reminderMinutes": "Remind {{minutes}} minutes before"
+  },
+  "offline": {
+    "title": "You are offline",
+    "description": "Please check your internet connection and try again",
+    "retry": "Retry"
   }
 } 

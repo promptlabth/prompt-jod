@@ -34,6 +34,21 @@ function App({ Component, pageProps }: AppProps) {
     setIsLanguageInitialized(true);
   }, []);
 
+  useEffect(() => {
+    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(
+          (registration) => {
+            console.log('ServiceWorker registration successful');
+          },
+          (err) => {
+            console.log('ServiceWorker registration failed: ', err);
+          }
+        );
+      });
+    }
+  }, []);
+
   // Don't render until language is initialized
   if (!isLanguageInitialized) {
     return null;
