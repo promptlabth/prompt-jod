@@ -5,6 +5,11 @@
     "login": "Login with Google",
     "logout": "Logout"
   },
+  "sidebar": {
+    "appointments": "Appointments",
+    "chat": "Chat",
+    "settings": "Settings"
+  },
   "loginModal": {
     "title": "Login Required",
     "description": "Please login to continue chatting with the bot."
@@ -136,7 +141,12 @@
     "noAppointments": "No upcoming appointments",
     "reminderDays": "Remind {{days}} days before",
     "reminderHours": "Remind {{hours}} hours before",
-    "reminderMinutes": "Remind {{minutes}} minutes before"
+    "reminderMinutes": "Remind {{minutes}} minutes before",
+    "editAppointment": "Edit Appointment",
+    "addedToCalendar": "Added to Calendar",
+    "date": "Date",
+    "time": "Time",
+    "description": "Description"
   },
   "offline": {
     "title": "You are offline",
@@ -144,7 +154,9 @@
     "retry": "Retry"
   },
   "common": {
-    "later": "Maybe Later"
+    "later": "Maybe Later",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "pwaPrompt": {
     "title": "Install พร้อมจด App",

@@ -1,21 +1,21 @@
-import type { AppProps } from 'next/app';
+import { AppProps } from 'next/app';
 import { appWithTranslation } from 'next-i18next';
-import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { AuthProvider } from '../contexts/AuthContext';
+import { SidebarProvider } from '../contexts/SidebarContext';
+import Sidebar from '../components/Sidebar';
 import Layout from '../components/Layout';
 import { Kanit } from 'next/font/google';
 import '../styles/globals.css';
-import { AuthProvider } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 const kanit = Kanit({
-  weight: ['300', '400', '500', '600'],
-  subsets: ['latin', 'thai'],
-  display: 'swap',
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['thai', 'latin'],
 });
 
-function App({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [isLanguageInitialized, setIsLanguageInitialized] = useState(false);
 
@@ -55,17 +55,19 @@ function App({ Component, pageProps }: AppProps) {
   }
 
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <CssBaseline />
-        <main className={kanit.className}>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </main>
-      </ThemeProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <SidebarProvider>
+          <Sidebar />
+          <main className={kanit.className}>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </main>
+        </SidebarProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
-export default appWithTranslation(App); 
+export default appWithTranslation(MyApp); 

@@ -5,6 +5,11 @@
     "login": "เข้าสู่ระบบด้วย Google",
     "logout": "ออกจากระบบ"
   },
+  "sidebar": {
+    "appointments": "การนัดหมาย",
+    "chat": "แชท",
+    "settings": "ตั้งค่า"
+  },
   "loginModal": {
     "title": "ต้องเข้าสู่ระบบ",
     "description": "กรุณาเข้าสู่ระบบเพื่อสนทนากับบอท"
@@ -136,7 +141,12 @@
     "noAppointments": "ไม่มีการนัดหมายที่กำลังจะมาถึง",
     "reminderDays": "แจ้งเตือน {{days}} วันก่อนถึงเวลานัด",
     "reminderHours": "แจ้งเตือน {{hours}} ชั่วโมงก่อนถึงเวลานัด",
-    "reminderMinutes": "แจ้งเตือน {{minutes}} นาทีก่อนถึงเวลานัด"
+    "reminderMinutes": "แจ้งเตือน {{minutes}} นาทีก่อนถึงเวลานัด",
+    "editAppointment": "แก้ไขการนัดหมาย",
+    "addedToCalendar": "เพิ่มในปฏิทินแล้ว",
+    "date": "วันที่",
+    "time": "เวลา",
+    "description": "รายละเอียด"
   },
   "offline": {
     "title": "ไม่มีการเชื่อมต่ออินเทอร์เน็ต",
@@ -144,7 +154,9 @@
     "retry": "ลองใหม่"
   },
   "common": {
-    "later": "ไว้ก่อน"
+    "later": "ไว้ก่อน",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก"
   },
   "pwaPrompt": {
     "title": "ติดตั้งแอป พร้อมจด",

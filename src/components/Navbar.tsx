@@ -15,11 +15,13 @@ import {
 import { 
   LightMode as LightModeIcon,
   DarkMode as DarkModeIcon,
-  KeyboardArrowDown as KeyboardArrowDownIcon
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useSidebar } from '../contexts/SidebarContext';
 
 interface NavButtonProps {
   children: React.ReactNode;
@@ -52,6 +54,7 @@ const Navbar = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const muiTheme = useMuiTheme();
   const { user, signInWithGoogle, signOut } = useAuth();
+  const { toggleSidebar } = useSidebar();
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -98,17 +101,33 @@ const Navbar = () => {
       }}
     >
       <Toolbar sx={{ py: 2, gap: 2, justifyContent: 'space-between' }}>
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
-            color: '#4ECCA3',
-            fontWeight: 600,
-            fontSize: '1.5rem',
-          }}
-        >
-          {getProjectName()}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton
+            onClick={toggleSidebar}
+            sx={{ 
+              color: muiTheme.palette.text.primary,
+              backgroundColor: 'rgba(78, 204, 163, 0.1)',
+              '&:hover': {
+                backgroundColor: 'rgba(78, 204, 163, 0.2)',
+              },
+              width: 40,
+              height: 40,
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              color: '#4ECCA3',
+              fontWeight: 600,
+              fontSize: '1.5rem',
+            }}
+          >
+            {getProjectName()}
+          </Typography>
+        </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <IconButton

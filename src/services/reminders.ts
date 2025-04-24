@@ -13,6 +13,7 @@ export interface Appointment {
   reminder_minutes_before: number;
   created_at: Date;
   updated_at: Date;
+  isAddedToCalendar?: boolean;
 }
 
 interface ReminderData {
@@ -143,4 +144,31 @@ export const deleteAppointment = async (user: User, appointmentId: string): Prom
   if (error) {
     throw new Error(`Failed to delete appointment: ${error.message}`);
   }
+};
+
+export const updateReminder = async (reminder: Appointment) => {
+  const { data, error } = await supabase
+    .from('reminders')
+    .update({
+      title: reminder.title,
+      description: reminder.description,
+      date: reminder.date,
+      time: reminder.time,
+      datetime: reminder.datetime,
+      reminder_minutes_before: reminder.reminder_minutes_before
+    })
+    .eq('id', reminder.id);
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteReminder = async (id: string) => {
+  const { data, error } = await supabase
+    .from('reminders')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+  return data;
 }; 
